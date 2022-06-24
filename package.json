@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^3.11.3",
+    "@stdlib/random-sample": "^0.0.7",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",
     "mongoose": "^6.4.0",
-    "node-cron": "^3.0.0"
+    "node-cron": "^3.0.0",
+    "random-choice": "^1.0.0"
   }
 }
