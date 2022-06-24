@@ -8,13 +8,13 @@ const ProblemSchema = new Schema({
       required: true,
     },
     question__article__live: {
-      type: Mixed,
+      type: Schema.Types.Mixed,
     },
     question__article__slug: {
-      type: Mixed,
+      type: Schema.Types.Mixed,
     },
     question__article__has_video_solution: {
-      type: Mixed,
+      type: Schema.Types.Mixed,
     },
     question__title: {
       type: String,
@@ -44,7 +44,7 @@ const ProblemSchema = new Schema({
     },
   },
   status: {
-    type: Mixed,
+    type: Schema.Types.Mixed,
   },
   difficulty: {
     level: {
@@ -65,6 +65,10 @@ const ProblemSchema = new Schema({
   progress: {
     type: Number,
   },
+  done: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const Problem = mongoose.model('problem', ProblemSchema);
