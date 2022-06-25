@@ -3,7 +3,7 @@ const axios = require("axios");
 const leetcodeAPIEndpoint = "https://leetcode.com/api/problems/algorithms/";
 const leetcodeBaseURL = "https://leetcode.com/problems/";
 
-const getProblem = async () => {
+const getAllLeetcodeProblems = async () => {
   const ret = [];
   const leetcodeData = await axios.get(leetcodeAPIEndpoint);
   const problems = leetcodeData.data.stat_status_pairs;
@@ -15,4 +15,4 @@ const getProblem = async () => {
   return ret;
 };
 
-module.exports = getProblem;
+module.exports = getAllLeetcodeProblems;

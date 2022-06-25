@@ -2,7 +2,7 @@ const cron = require("node-cron");
 const { App } = require("@slack/bolt");
 const WebSocket = require("ws");
 const randomChoice = require("random-choice");
-const { sendMessage } = require("./slack");
+const { sendSlackMessage } = require("./slack");
 
 require("dotenv").config();
 
@@ -20,7 +20,7 @@ ws.on("open", async () => {
   console.log("connected to websocket");
   const getDifficultyNumber = () => {
     const difficulty = randomChoice([1, 2, 3], [1, 3, 2]);
-    const numProblems = [0, 3, 2, 1][difficulty];
+    const numProblems = [0, 2, 1, 1][difficulty];
     return [difficulty, numProblems];
   };
   const generateProblems = () => {
@@ -40,6 +40,9 @@ ws.on("open", async () => {
 ws.on("message", (data) => {
   const [task, payload] = JSON.parse(data);
   const today = new Date();
+  const { difficulty, numProblems, problems } = payload;
+  const difficultyString =
+    '"' + ["", "easy", "medium", "hard"][difficulty] + '"';
   const parseProblem = (data) => {
     const title = data["stat"]["question__title"],
       slug = data["stat"]["question__title_slug"];
@@ -50,14 +53,16 @@ ws.on("message", (data) => {
 
   switch (task) {
     case "generate_success":
-      const slackMessage = `It's ${today.toLocaleDateString('zh-TW').split('T')[0]} today.\nToday's difficulty is ${payload.difficulty}, with ${payload.numProblems} problems.`;
+      const slackMessage = `It's ${
+        today.toLocaleDateString("zh-TW").split("T")[0]
+      } today.\nToday's difficulty is *${difficultyString}*, with ${numProblems} problems.`;
       var problemMessage = "";
-      for (const problem of payload.problems) {
+      for (const problem of problems) {
         problemMessage += parseProblem(problem) + "\n";
       }
       const finalMessage = slackMessage + "\n" + problemMessage;
       console.log(finalMessage);
-      sendMessage(app, 'test', finalMessage);
+      sendSlackMessage(app, "test", finalMessage);
       break;
     default:
       console.log(task);

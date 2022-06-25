@@ -14,7 +14,7 @@ const getChannel = async (app, channelName) => {
   return channel;
 };
 
-const sendMessage = async (app, channelName, message) => {
+const sendSlackMessage = async (app, channelName, message) => {
   var channel = await getChannel(app, channelName);
   if (channel === undefined) return;
   var result = await app.client.chat.postMessage({
@@ -26,5 +26,5 @@ const sendMessage = async (app, channelName, message) => {
 
 module.exports = {
   getChannel,
-  sendMessage,
+  sendSlackMessage,
 };

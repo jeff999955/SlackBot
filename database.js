@@ -29,13 +29,13 @@ db.once("open", () => {
       sendData(["status", s]);
     };
 
-    const findProblem = async (condition) => {
+    const findLeetcodeProblems = async (condition) => {
       console.log(condition);
       return await Problem.find(condition);
     };
 
-    const getProblems = async (difficulty, numProblems) => {
-      const problems = await findProblem({
+    const getLeetcodeProblems = async (difficulty, numProblems) => {
+      const problems = await findLeetcodeProblem({
         "difficulty.level": difficulty,
         done: false,
       });
@@ -58,9 +58,9 @@ db.once("open", () => {
           // payload: List of problems
           try {
             await Problem.insertMany(payload);
-            sendStatus("success");
+            sendStatus("insert_success");
           } catch (err) {
-            sendStatus("fail");
+            sendStatus("insert_fail");
             console.error(err);
           }
           break;
@@ -68,9 +68,9 @@ db.once("open", () => {
         case "find": {
           // payload: Problem
           try {
-            sendData(["success", await findProblem(payload)]);
+            sendData(["find_success", await findLeetcodeProblem(payload)]);
           } catch (err) {
-            sendStatus("fail");
+            sendStatus("find_fail");
             console.error(err);
           }
           break;
@@ -79,10 +79,12 @@ db.once("open", () => {
           // payload: { difficulty: int, numProblems: int }
           try {
             const { difficulty, numProblems } = payload;
-            sendData(["generate_success", await getProblems(difficulty, numProblems)]);
+            sendData([
+              "generate_success",
+              await getLeetcodeProblems(difficulty, numProblems),
+            ]);
           } catch (err) {
-            sendStatus("fail");
-            console.error("fail");
+            sendStatus("generate_fail");
             console.error(err);
           }
           break;
