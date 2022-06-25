@@ -4,6 +4,7 @@ const axios = require("axios");
 const WebSocket = require("ws");
 const getProblem = require("./leetcode");
 const randomChoice = require("random-choice");
+const {getChannel, sendMessage} = require("./slack");
 
 require("dotenv").config();
 
@@ -21,8 +22,6 @@ ws.on("open", async () => {
   };
   const generateProblems = () => {
     const [difficulty, numProblems] = getDifficultyNumber();
-    const slackMessage = `Today's difficulty is ${difficulty}, with ${numProblems} problems.`;
-    console.log(slackMessage);
     sendData([
       "generate",
       { difficulty: difficulty, numProblems: numProblems },
@@ -30,9 +29,6 @@ ws.on("open", async () => {
   };
 
   const problems = await getProblem();
-
-  // sendData(["insert", problems]);
-  sendData(["find", problems[0]]);
   generateProblems();
   // cron.schedule("* * * * * *", () => console.log("test"));
 });
@@ -44,9 +40,19 @@ ws.on("message", (data) => {
       slug = data["stat"]["question__title_slug"];
 
     const url = `https://leetcode.com/problems/${slug}/`;
+    return url;
   };
-  console.log(task);
-  console.log(payload);
+
+  switch (task) {
+    case "success":
+      const slackMessage = `Today's difficulty is ${payload.difficulty}, with ${payload.numProblems} problems.`;
+      var problemMessage = '';
+      for (const problem of payload.problems) {
+        problemMessage += parseProblem(problem) + "\n";
+      }
+      const finalMessage = slackMessage + "\n" + problemMessage;
+      console.log(finalMessage);
+  }
 });
 
 const app = new App({

@@ -30,19 +30,24 @@ db.once("open", () => {
     };
 
     const findProblem = async (condition) => {
+      console.log(condition);
       return await Problem.find(condition);
     };
 
-    const getProblems = async (difficulty, numberProblems) => {
+    const getProblems = async (difficulty, numProblems) => {
       const problems = await findProblem({
         "difficulty.level": difficulty,
         done: false,
       });
       const returnProblems = randomSample(problems, {
-        size: numberProblems,
+        size: numProblems,
         replace: false,
       });
-      return returnProblems;
+      return {
+        difficulty: difficulty,
+        numProblems: numProblems,
+        problems: returnProblems,
+      };
     };
 
     ws.onmessage = async ({ data }) => {
@@ -74,12 +79,13 @@ db.once("open", () => {
           // payload: { difficulty: int, numProblems: int }
           try {
             const { difficulty, numProblems } = payload;
-            sendData(["success", await getProblems(difficulty, numProblems)]); 
+            sendData(["success", await getProblems(difficulty, numProblems)]);
           } catch (err) {
             sendStatus("fail");
             console.error("fail");
             console.error(err);
           }
+          break;
         }
         default:
           console.log(task);
