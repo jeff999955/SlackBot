@@ -31,7 +31,7 @@ ws.on("open", async () => {
     ]);
   };
 
-  cron.schedule("0 21 * * *", async () => generateProblems());
+  cron.schedule("0 9 * * *", async () => generateProblems());
 });
 
 ws.on("message", (data) => {
