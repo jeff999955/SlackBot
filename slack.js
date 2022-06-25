@@ -1,3 +1,11 @@
+const { App } = require("@slack/bolt");
+require("dotenv").config();
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+});
+
 const getChannel = async (app, channelName) => {
   const channels = await app.client.conversations.list();
   const channel = channels.channels.find(
@@ -7,7 +15,7 @@ const getChannel = async (app, channelName) => {
 };
 
 const sendMessage = async (app, channelName, message) => {
-  var channel = await getChannel(channelName);
+  var channel = await getChannel(app, channelName);
   if (channel === undefined) return;
   var result = await app.client.chat.postMessage({
     channel: channel.id,
@@ -15,10 +23,6 @@ const sendMessage = async (app, channelName, message) => {
   });
   return result;
 };
-
-// sendMessage("test", "https://www.google.com").then((result) =>
-//   console.log(result)
-// );
 
 module.exports = {
   getChannel,
