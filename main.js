@@ -31,10 +31,7 @@ ws.on("open", async () => {
     ]);
   };
 
-  cron.schedule("*/5 * * * * *", async () => {
-    console.log("spamming...");
-    generateProblems();
-  });
+  cron.schedule("0 21 * * *", async () => generateProblems());
 });
 
 ws.on("message", (data) => {
@@ -62,7 +59,7 @@ ws.on("message", (data) => {
       }
       const finalMessage = slackMessage + "\n" + problemMessage;
       console.log(finalMessage);
-      sendSlackMessage(app, "test", finalMessage);
+      sendSlackMessage(app, "leetcode", finalMessage);
       break;
     default:
       console.log(task);

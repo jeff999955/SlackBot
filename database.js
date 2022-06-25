@@ -30,12 +30,11 @@ db.once("open", () => {
     };
 
     const findLeetcodeProblems = async (condition) => {
-      console.log(condition);
       return await Problem.find(condition);
     };
 
     const getLeetcodeProblems = async (difficulty, numProblems) => {
-      const problems = await findLeetcodeProblem({
+      const problems = await findLeetcodeProblems({
         "difficulty.level": difficulty,
         done: false,
       });
@@ -43,6 +42,9 @@ db.once("open", () => {
         size: numProblems,
         replace: false,
       });
+      returnProblems.forEach((problem) =>
+        Problem.findByIdAndUpdate(problem._id.toString(), { done: true }).exec()
+      );
       return {
         difficulty: difficulty,
         numProblems: numProblems,
@@ -51,7 +53,6 @@ db.once("open", () => {
     };
 
     ws.onmessage = async ({ data }) => {
-      // console.log(data);
       const [task, payload] = JSON.parse(data);
       switch (task) {
         case "insert": {
@@ -68,7 +69,7 @@ db.once("open", () => {
         case "find": {
           // payload: Problem
           try {
-            sendData(["find_success", await findLeetcodeProblem(payload)]);
+            sendData(["find_success", await findLeetcodeProblems(payload)]);
           } catch (err) {
             sendStatus("find_fail");
             console.error(err);
