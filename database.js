@@ -79,7 +79,7 @@ db.once("open", () => {
           // payload: { difficulty: int, numProblems: int }
           try {
             const { difficulty, numProblems } = payload;
-            sendData(["success", await getProblems(difficulty, numProblems)]);
+            sendData(["generate_success", await getProblems(difficulty, numProblems)]);
           } catch (err) {
             sendStatus("fail");
             console.error("fail");

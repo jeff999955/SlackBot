@@ -6,8 +6,6 @@ const { sendMessage } = require("./slack");
 
 require("dotenv").config();
 
-var todayID = "";
-
 const ws = new WebSocket(`ws://localhost:${process.env.PORT}`);
 
 const app = new App({
@@ -36,14 +34,12 @@ ws.on("open", async () => {
   cron.schedule("*/5 * * * * *", async () => {
     console.log("spamming...");
     generateProblems();
-    console.log(`Today's ID: ${todayID}`);
-    const result = await sendMessage(app, "test", ":nlnlsofun:");
-    todayID = result;
   });
 });
 
 ws.on("message", (data) => {
   const [task, payload] = JSON.parse(data);
+  const today = new Date();
   const parseProblem = (data) => {
     const title = data["stat"]["question__title"],
       slug = data["stat"]["question__title_slug"];
@@ -53,13 +49,19 @@ ws.on("message", (data) => {
   };
 
   switch (task) {
-    case "success":
-      const slackMessage = `Today's difficulty is ${payload.difficulty}, with ${payload.numProblems} problems.`;
+    case "generate_success":
+      const slackMessage = `It's ${today.toLocaleDateString('zh-TW').split('T')[0]} today.\nToday's difficulty is ${payload.difficulty}, with ${payload.numProblems} problems.`;
       var problemMessage = "";
       for (const problem of payload.problems) {
         problemMessage += parseProblem(problem) + "\n";
       }
       const finalMessage = slackMessage + "\n" + problemMessage;
       console.log(finalMessage);
+      sendMessage(app, 'test', finalMessage);
+      break;
+    default:
+      console.log(task);
+      console.log(payload);
+      break;
   }
 });
