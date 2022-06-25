@@ -1,14 +1,19 @@
 const cron = require("node-cron");
 const { App } = require("@slack/bolt");
-const axios = require("axios");
 const WebSocket = require("ws");
-const getProblem = require("./leetcode");
 const randomChoice = require("random-choice");
-const {getChannel, sendMessage} = require("./slack");
+const { sendMessage } = require("./slack");
 
 require("dotenv").config();
 
+var todayID = "";
+
 const ws = new WebSocket(`ws://localhost:${process.env.PORT}`);
+
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+});
 
 ws.on("open", async () => {
   const sendData = (data) => {
@@ -28,9 +33,13 @@ ws.on("open", async () => {
     ]);
   };
 
-  const problems = await getProblem();
-  generateProblems();
-  // cron.schedule("* * * * * *", () => console.log("test"));
+  cron.schedule("*/5 * * * * *", async () => {
+    console.log("spamming...");
+    generateProblems();
+    console.log(`Today's ID: ${todayID}`);
+    const result = await sendMessage(app, "test", ":nlnlsofun:");
+    todayID = result;
+  });
 });
 
 ws.on("message", (data) => {
@@ -46,16 +55,11 @@ ws.on("message", (data) => {
   switch (task) {
     case "success":
       const slackMessage = `Today's difficulty is ${payload.difficulty}, with ${payload.numProblems} problems.`;
-      var problemMessage = '';
+      var problemMessage = "";
       for (const problem of payload.problems) {
         problemMessage += parseProblem(problem) + "\n";
       }
       const finalMessage = slackMessage + "\n" + problemMessage;
       console.log(finalMessage);
   }
-});
-
-const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
