@@ -1,6 +1,7 @@
 import { App } from "@slack/bolt";
 import mongoose from "mongoose";
 import { Problem } from "./model/problem";
+import { sendSlackMessage } from "./slack";
 
 const randomChoice = require("random-choice");
 const randomSample = require("@stdlib/random-sample");
@@ -14,11 +15,7 @@ mongoose.connect(process.env.MONGO_URL as string, {
 } as mongoose.ConnectOptions);
 
 const db = mongoose.connection;
-interface ProblemResponse {
-    difficulty: number,
-    numProblems: number,
-    problems: Array<any>
-}
+
 const slackApp = new App({
     token: process.env.SLACK_BOT_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET
@@ -37,7 +34,7 @@ const parseProblem = (problem: any) => {
     return url;
 };
 
-const getMessage = (problemResponse: ProblemResponse): string => {
+const getMessage = (problemResponse: IProblemResponse): string => {
     const { difficulty, numProblems, problems } = problemResponse;
     const today = new Date();
     const difficultyString =
@@ -45,8 +42,9 @@ const getMessage = (problemResponse: ProblemResponse): string => {
     const slackMessage = `It's ${today.toLocaleDateString("zh-TW").split("T")[0]
         } today.\nToday's difficulty is *${difficultyString}*, with ${numProblems} problems.`;
     let problemMessage: string = "";
-    for (const problem in problems)
+    for (const problem of problems) {
         problemMessage += parseProblem(problem) + "\n";
+    }
     const finalMessage = slackMessage + "\n" + problemMessage;
     return finalMessage;
 };
@@ -56,7 +54,7 @@ const findLeetcodeProblems = async (condition: Object) => {
 }
 
 
-const getLeetcodeProblems = async (difficulty: number, numProblems: number): Promise<ProblemResponse> => {
+const getLeetcodeProblems = async (difficulty: number, numProblems: number, toUpdate: boolean = true): Promise<IProblemResponse> => {
     const condition: Object = {
         "difficulty.level": difficulty,
         done: false,
@@ -66,7 +64,7 @@ const getLeetcodeProblems = async (difficulty: number, numProblems: number): Pro
         size: numProblems,
         replace: false,
     });
-    returnProblems.forEach((problem: any) => Problem.findByIdAndUpdate(problem._id.toString(), { done: true }).exec());
+    toUpdate && returnProblems.forEach((problem: any) => Problem.findByIdAndUpdate(problem._id.toString(), { done: true }).exec());
     return {
         difficulty: difficulty,
         numProblems: numProblems,
@@ -74,9 +72,9 @@ const getLeetcodeProblems = async (difficulty: number, numProblems: number): Pro
     };
 };
 
-const generateDailyProblemMessage = async () => {
+const generateDailyProblemMessage = async (toUpdate: boolean = true) => {
     const [difficulty, numProblems] = getDifficulty();
-    const problemResponse = await getLeetcodeProblems(difficulty, numProblems);
+    const problemResponse = await getLeetcodeProblems(difficulty, numProblems, toUpdate);
     const message = getMessage(problemResponse);
     return message;
 }
@@ -84,7 +82,11 @@ const generateDailyProblemMessage = async () => {
 db.on("error", (e) => console.error(e));
 db.once("open", () => {
     console.log("connected to mongoDB");
-    cron.schedule("*/5 * * * * *", async () => console.log(generateDailyProblemMessage()));
+    cron.schedule("0 9 * * * *", async () => {
+        const slackMessage = await generateDailyProblemMessage();
+        console.log(slackMessage);
+        sendSlackMessage(slackApp, 'test', slackMessage);
+    });
 });
 
 
