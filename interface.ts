@@ -1,5 +1,5 @@
-interface IProblemResponse {
+interface ProblemResponse {
     difficulty: number,
     numProblems: number,
-    problems: Array<any>
+    problems: any[]
 }

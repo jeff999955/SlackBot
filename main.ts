@@ -23,7 +23,7 @@ const slackApp = new App({
 
 const getDifficulty = () => {
     const difficulty: number = randomChoice([1, 2, 3], [1, 3, 2]);
-    const numProblems: number = [0, 2, 1, 1][difficulty];
+    const numProblems = [0, 2, 1, 1][difficulty];
     return [difficulty, numProblems];
 }
 
@@ -34,7 +34,7 @@ const parseProblem = (problem: any) => {
     return url;
 };
 
-const getMessage = (problemResponse: IProblemResponse): string => {
+const getMessage = (problemResponse: ProblemResponse): string => {
     const { difficulty, numProblems, problems } = problemResponse;
     const today = new Date();
     const difficultyString =
@@ -54,7 +54,7 @@ const findLeetcodeProblems = async (condition: Object) => {
 }
 
 
-const getLeetcodeProblems = async (difficulty: number, numProblems: number, toUpdate: boolean = true): Promise<IProblemResponse> => {
+const getLeetcodeProblems = async (difficulty: number, numProblems: number, toUpdate: boolean = true): Promise<ProblemResponse> => {
     const condition: Object = {
         "difficulty.level": difficulty,
         done: false,
