@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { Problem } from "./model/problem";
 import { sendSlackMessage } from "./slack";
 
+
 const randomChoice = require("random-choice");
 const randomSample = require("@stdlib/random-sample");
 const cron = require("node-cron");
@@ -21,9 +22,23 @@ const slackApp = new App({
     signingSecret: process.env.SLACK_SIGNING_SECRET
 });
 
-const getDifficulty = () => {
-    const difficulty: number = randomChoice([1, 2, 3], [1, 3, 2]);
-    const numProblems = [0, 2, 1, 1][difficulty];
+const difficultyValueMap: Record<Difficulty, number> = {
+    'easy': 1,
+    'medium': 2,
+    'hard': 3,
+};
+
+const difficultyNumProblemsMap: Record<Difficulty, number> = {
+    'easy': 2,
+    'medium': 1,
+    'hard': 1,
+};
+
+const getDifficulty = (): [Difficulty, number] => {
+    const weight = [1, 3, 2];
+    const difficulties: Difficulty[] = ["easy", "medium", "hard"];
+    const difficulty: Difficulty = randomChoice(difficulties, weight);
+    const numProblems: number = difficultyNumProblemsMap[difficulty];
     return [difficulty, numProblems];
 }
 
@@ -38,7 +53,7 @@ const getMessage = (problemResponse: ProblemResponse): string => {
     const { difficulty, numProblems, problems } = problemResponse;
     const today = new Date();
     const difficultyString =
-        '"' + ["", "easy", "medium", "hard"][difficulty] + '"';
+        '"' + difficulty.toString() + '"';
     const slackMessage = `It's ${today.toLocaleDateString("zh-TW").split("T")[0]
         } today.\nToday's difficulty is *${difficultyString}*, with ${numProblems} problems.`;
     let problemMessage: string = "";
@@ -54,9 +69,9 @@ const findLeetcodeProblems = async (condition: Object) => {
 }
 
 
-const getLeetcodeProblems = async (difficulty: number, numProblems: number, toUpdate: boolean = true): Promise<ProblemResponse> => {
+const getLeetcodeProblems = async (difficulty: Difficulty, numProblems: number, toUpdate: boolean = true): Promise<ProblemResponse> => {
     const condition: Object = {
-        "difficulty.level": difficulty,
+        "difficulty.level": difficultyValueMap[difficulty],
         done: false,
     };
     const problems = await findLeetcodeProblems(condition);
@@ -82,10 +97,10 @@ const generateDailyProblemMessage = async (toUpdate: boolean = true) => {
 db.on("error", (e) => console.error(e));
 db.once("open", () => {
     console.log("connected to mongoDB");
-    cron.schedule("0 9 * * * *", async () => {
-        const slackMessage = await generateDailyProblemMessage();
+    cron.schedule("0 9 * * *", async () => {
+        const slackMessage = await generateDailyProblemMessage(false);
         console.log(slackMessage);
-        sendSlackMessage(slackApp, 'test', slackMessage);
+        sendSlackMessage(slackApp, 'leetcode', slackMessage);
     });
 });
 
