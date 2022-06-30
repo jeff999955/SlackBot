@@ -17,5 +17,8 @@
     "mongoose": "^6.4.0",
     "node-cron": "^3.0.0",
     "random-choice": "^1.0.0"
+  },
+  "engines": {
+    "node": "16.15.0"
   }
 }
