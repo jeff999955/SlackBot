@@ -81,8 +81,8 @@ const getLeetcodeProblems = async (difficulty: Difficulty, numProblems: number, 
     });
     toUpdate && returnProblems.forEach((problem: any) => Problem.findByIdAndUpdate(problem._id.toString(), { done: true }).exec());
     return {
-        difficulty: difficulty,
-        numProblems: numProblems,
+        difficulty,
+        numProblems,
         problems: returnProblems
     };
 };
@@ -98,7 +98,7 @@ db.on("error", (e) => console.error(e));
 db.once("open", () => {
     console.log("connected to mongoDB");
     cron.schedule("0 9 * * *", async () => {
-        const slackMessage = await generateDailyProblemMessage(false);
+        const slackMessage = await generateDailyProblemMessage();
         console.log(slackMessage);
         sendSlackMessage(slackApp, 'leetcode', slackMessage);
     });
